@@ -1,27 +1,30 @@
 package app
 
 import (
-	"fmt"
 	"projectBinacne/config"
 	"projectBinacne/infrastructure/database"
+	"projectBinacne/internal/delivery/handlers"
+	"projectBinacne/internal/delivery/routes"
 	binanceapi "projectBinacne/internal/repository/binance_api"
-	repository "projectBinacne/internal/repository/postgres"
+	"projectBinacne/internal/repository/postgres"
 	"projectBinacne/internal/usecase"
 )
 
-func Init(srv Server, cfg config.Config) error {
+func Init(srv *Server, cfg config.Config) error {
 
 	db, err := database.NewConnectDB(cfg)
 	if err != nil {
 		return err
 	}
-	repository := repository.NewRepo(db)
+	repository := postgres.NewRepo(db)
 
 	binanceService := binanceapi.NewBinanceService()
 
-	usecace := usecase.NewUsecase(repository, binanceService)
+	uc := usecase.NewUsecase(repository, binanceService)
 
-	fmt.Println(usecace)
+	handler := handlers.NewHandler(uc)
+
+	routes.Init(srv.echo, *handler)
 
 	return nil
 }

@@ -13,3 +13,5 @@ func NewBinanceService() *BinanceService {
 
 	return &BinanceService{client: client, listPriceService: service}
 }
+
+//вытаскивает прайс и отдает в entity.Ticker

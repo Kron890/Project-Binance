@@ -1,8 +1,11 @@
 package entity
 
 type Ticker struct {
-	Ticker string
-	Price  float64 // нужна ли вообще ?
+	Name     string
+	Price    string
+	DateFrom string
+	DateTo   string
+	Diff     string
 }
 
 type TikcerHistory struct {
@@ -12,3 +15,5 @@ type TikcerHistory struct {
 }
 
 //todo: обудмать как лушче сделать данные
+
+//

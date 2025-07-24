@@ -8,7 +8,7 @@ import (
 	"projectBinacne/internal/app"
 )
 
-// TODO: додумать как ошибки отпаврялть
+// TODO:  как ошибки отпаврялть ?
 
 func main() {
 	srv := app.NewServer()
@@ -20,7 +20,7 @@ func main() {
 
 	}
 
-	err = app.Init(*srv, cfg)
+	err = app.Init(srv, cfg)
 	if err != nil {
 		log.Println("failed to initialize app:", err)
 		os.Exit(1)
