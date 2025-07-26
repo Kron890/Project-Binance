@@ -31,13 +31,13 @@ func NewConnectDB(c config.Config) (*DataBase, error) {
 	}
 
 	tables := `
-	CREATE TABLE IF NOT EXISTS tickers (
+	CREATE TABLE IF NOT EXISTS ticker_list (
 		ticker TEXT PRIMARY KEY
 	);
-	CREATE TABLE IF NOT EXISTS ticker_history (
+	CREATE TABLE IF NOT EXISTS ticker_history_list (
 		ticker    TEXT NOT NULL,
-		price     DOUBLE PRECISION NOT NULL,
-		timestamp BIGINT NOT NULL
+		price     NUMERIC(18,8) NOT NULL,
+		date TIMESTAMPTZ NOT NULL 
 	);`
 
 	_, err = connect.Exec(tables)

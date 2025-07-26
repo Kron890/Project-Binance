@@ -1,11 +1,11 @@
-package time_convert
+package timeConvert
 
 import (
 	"fmt"
 	"time"
 )
 
-func ConvertTime(dateFrom, dateTo string) (int64, int64, error) {
+func Convert(dateFrom, dateTo string) (int64, int64, error) {
 	loc, _ := time.LoadLocation("Europe/Moscow") // Загружаем московский часовой пояс
 	dateFromTime, err := time.ParseInLocation("02.01.2006 15:04:05", dateFrom, loc)
 	if err != nil {

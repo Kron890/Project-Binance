@@ -3,6 +3,7 @@ package postgres
 import (
 	"projectBinacne/infrastructure/database"
 	"projectBinacne/internal/entity"
+	dtorepository "projectBinacne/internal/repository/postgres/dto_repository"
 )
 
 type PostgresRepo struct {
@@ -16,7 +17,7 @@ func NewRepo(db *database.DataBase) *PostgresRepo {
 //(name string) правильно или лушче в структуру, но там просто один параметр ?
 
 // кладет в бд название тикера(отделаня бд для название тикеров)
-func (db *PostgresRepo) AddTickersList(name string) error {
+func (r *PostgresRepo) AddTickersList(name string) error {
 	//смотрим есть ли такой тикер
 	//если есть возваращет ответ с ошибкой
 
@@ -25,24 +26,35 @@ func (db *PostgresRepo) AddTickersList(name string) error {
 }
 
 // вытаскиваем все название
-func (db *PostgresRepo) GetTickersList() ([]entity.Ticker, error) {
+func (r *PostgresRepo) GetTickersList() ([]entity.Ticker, error) {
 	return []entity.Ticker{}, nil
 }
 
-func (db *PostgresRepo) FetchTickerHistory(t entity.Ticker) (entity.Ticker, error) {
+// находим данные
+func (r *PostgresRepo) FetchTickerHistory(t entity.TikcerHistory) (entity.TikcerHistory, error) {
 	//map dto
-	//вытаскиваем данные из бд
-	//отдельно вытаскиваем dateTO dateFROM
+	// query := "SELECT * FROM ticker_history_list " //запрос
+
+	//парсим в time.time
+
+	// row := r.DB.DB.QueryRow(query, sql.Named("date"))
+
 	//map Dto
 	//отдаем в usecase
 
-	return entity.Ticker{}, nil
+	return entity.TikcerHistory{}, nil
 }
 
-// кладем данные с историей прайсов
-func (db *PostgresRepo) AddTickersHistory(t entity.Ticker) error {
-	//mapDto
+// кладем данные с историей
+func (r *PostgresRepo) AddTickersHistory(t entity.TikcerHistory) error {
+	ticker := dtorepository.MapEntityToHistory(t)
 
-	//кладем в бд
+	query := "INSERT INTO ticker_history_list (ticker, price, date) VALUES ($1, $2, $3)"
+
+	_, err := r.DB.DB.Exec(query, ticker.Name, ticker.Price, ticker.Date)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

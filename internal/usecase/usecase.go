@@ -1,45 +1,85 @@
 package usecase
 
 import (
+	"fmt"
+	"projectBinacne/internal"
 	"projectBinacne/internal/entity"
-	binanceapi "projectBinacne/internal/repository/binance_api"
-	repository "projectBinacne/internal/repository/postgres"
+	"time"
 )
 
 type Ucecase struct {
-	Repo       *repository.PostgresRepo
-	BinService *binanceapi.BinanceService
+	Repo       internal.RepoPostgres
+	BinService internal.RepoBinance
 }
 
-func NewUsecase(r *repository.PostgresRepo, b *binanceapi.BinanceService) *Ucecase {
+const format = "02.01.06 15:04:05"
+
+func NewUsecase(r internal.RepoPostgres, b internal.RepoBinance) *Ucecase {
 	return &Ucecase{
 		Repo:       r,
 		BinService: b}
 
 }
 
-func (uc *Ucecase) AddTicker(ticker entity.Ticker) (entity.Ticker, error) {
-	//проверка есть ли такая монета ?
+// просто добавляем в бд
+func (uc *Ucecase) AddTicker(ticker entity.Ticker) error {
 
-	//кладем в entity
+	_, err := uc.BinService.GetPrice(ticker.Name)
+	if err != nil {
+		return err
+	}
 
-	//отдаем в репозиторий
-	return entity.Ticker{}, nil
+	err = uc.Repo.AddTickersList(ticker.Name)
+	if err != nil {
+		return err
+	}
+
+	return nil
 
 }
 
-func (uc *Ucecase) FetchTicker(entity.Ticker) (entity.Ticker, error) {
-	//берем данные из репо
-	//если нет время возвращаем на данный момент
-	// и добавляем данные в бд
+// вытаскиваем данные
+func (uc *Ucecase) FetchTicker(t entity.Ticker) (entity.TikcerHistory, error) {
 
-	//преобразуем время, деньги
+	//если нет даты,то вытаскиваем на данный момент
+	if t.DateFrom == "" || t.DateTo == "" {
+		price, err := uc.BinService.GetPrice(t.Name)
+		if err != nil {
+			return entity.TikcerHistory{}, err
+		}
+		t.Price = price
 
-	//находим разницу
+		return t, nil
+	}
 
-	//кидаем в структуру и отдаем (все в стринг)
+	dateFrom, err := time.Parse(t.DateFrom, format)
+	if err != nil {
+		return entity.TikcerHistory{}, err
+	}
+	dataFrom := entity.TikcerHistory{Name: t.Name, Date: dateFrom}
 
-	return entity.Ticker{}, nil
+	dateTo, err := time.Parse(t.DateTo, format)
+	if err != nil {
+		return entity.TikcerHistory{}, err
+	}
+
+	dataTo := entity.TikcerHistory{Name: t.Name, Date: dateTo}
+
+	dataFrom, err = uc.Repo.FetchTickerHistory(dataFrom)
+	if err != nil {
+		return entity.TikcerHistory{}, err
+	}
+
+	dataTo, err = uc.Repo.FetchTickerHistory(dataTo)
+	if err != nil {
+		return entity.TikcerHistory{}, err
+	}
+
+	fmt.Println(dataFrom, dataTo)
+
+	//считаем разницу и кидаем TikcerHistory
+
+	return entity.TikcerHistory{}, nil
 }
 
 //функция которая будет регулярно обновлять данные в бд

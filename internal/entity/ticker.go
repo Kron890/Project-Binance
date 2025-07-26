@@ -1,5 +1,7 @@
 package entity
 
+import "time"
+
 type Ticker struct {
 	Name     string
 	Price    string
@@ -9,9 +11,9 @@ type Ticker struct {
 }
 
 type TikcerHistory struct {
-	Ticker    string
-	Price     float64
-	Timestamp int64
+	Name  string
+	Price string
+	Date  time.Time
 }
 
 //todo: обудмать как лушче сделать данные
