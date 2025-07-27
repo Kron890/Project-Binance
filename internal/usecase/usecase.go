@@ -1,18 +1,16 @@
 package usecase
 
 import (
-	"fmt"
 	"projectBinacne/internal"
 	"projectBinacne/internal/entity"
-	"time"
+	"projectBinacne/internal/entity/filters"
+	"projectBinacne/internal/usecase/helpers"
 )
 
 type Ucecase struct {
 	Repo       internal.RepoPostgres
 	BinService internal.RepoBinance
 }
-
-const format = "02.01.06 15:04:05"
 
 func NewUsecase(r internal.RepoPostgres, b internal.RepoBinance) *Ucecase {
 	return &Ucecase{
@@ -39,47 +37,38 @@ func (uc *Ucecase) AddTicker(ticker entity.Ticker) error {
 }
 
 // вытаскиваем данные
-func (uc *Ucecase) FetchTicker(t entity.Ticker) (entity.TikcerHistory, error) {
+func (uc *Ucecase) FetchTicker(ticker entity.TikcerHistory) (entity.TikcerHistory, error) {
 
 	//если нет даты,то вытаскиваем на данный момент
-	if t.DateFrom == "" || t.DateTo == "" {
-		price, err := uc.BinService.GetPrice(t.Name)
+	if ticker.DateFrom == "" || ticker.DateTo == "" {
+		price, err := uc.BinService.GetPrice(ticker.Name)
 		if err != nil {
 			return entity.TikcerHistory{}, err
 		}
-		t.Price = price
+		ticker.Price = price
 
-		return t, nil
+		return ticker, nil
 	}
 
-	dateFrom, err := time.Parse(t.DateFrom, format)
-	if err != nil {
-		return entity.TikcerHistory{}, err
-	}
-	dataFrom := entity.TikcerHistory{Name: t.Name, Date: dateFrom}
-
-	dateTo, err := time.Parse(t.DateTo, format)
+	dateFrom, dateTo, err := helpers.ParseDate(ticker.DateTo, ticker.DateFrom)
 	if err != nil {
 		return entity.TikcerHistory{}, err
 	}
 
-	dataTo := entity.TikcerHistory{Name: t.Name, Date: dateTo}
-
-	dataFrom, err = uc.Repo.FetchTickerHistory(dataFrom)
+	history, err := uc.Repo.FetchTickerHistory(filters.TickerHistoryDiff{
+		Name:     ticker.Name,
+		DateFrom: dateFrom,
+		DateTo:   dateTo})
 	if err != nil {
 		return entity.TikcerHistory{}, err
 	}
 
-	dataTo, err = uc.Repo.FetchTickerHistory(dataTo)
+	ticker.Difference, err = helpers.DifferenceCalculator(history)
 	if err != nil {
 		return entity.TikcerHistory{}, err
 	}
 
-	fmt.Println(dataFrom, dataTo)
-
-	//считаем разницу и кидаем TikcerHistory
-
-	return entity.TikcerHistory{}, nil
+	return ticker, nil
 }
 
 //функция которая будет регулярно обновлять данные в бд

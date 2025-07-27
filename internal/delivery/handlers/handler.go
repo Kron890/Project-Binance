@@ -55,7 +55,7 @@ func (h Handler) FetchTicker(c echo.Context) error {
 	}
 
 	t.DateFrom = c.Param("date_from")
-	if t.DateFrom != "" || len(t.DateFrom) != 17 {
+	if t.DateFrom != "" {
 		fmt.Println(t.DateFrom)
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"error": "not valid",
@@ -63,20 +63,19 @@ func (h Handler) FetchTicker(c echo.Context) error {
 	}
 
 	t.DateTo = c.Param("date_to")
-	if t.DateTo != "" || len(t.DateTo) != 17 {
+	if t.DateTo != "" {
 		fmt.Println(t.DateFrom)
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"error": "not valid",
 		})
 	}
 
-	ticker, err := h.uc.FetchTicker(dto.MapTickerParamsToEntity(t))
+	ticker, err := h.uc.FetchTicker(dto.MapTickerParamsToHistory(t))
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"error": err.Error(),
 		})
 	}
 
-	//делаем отдельную стркуткуру для вывода
 	return c.JSON(http.StatusOK, dto.MapEntityToResponce(ticker))
 }

@@ -2,20 +2,18 @@ package entity
 
 import "time"
 
+//структура для тикера
 type Ticker struct {
-	Name     string
-	Price    string
-	DateFrom string
-	DateTo   string
-	Diff     string
-}
-
-type TikcerHistory struct {
 	Name  string
 	Price string
-	Date  time.Time
 }
 
-//todo: обудмать как лушче сделать данные
-
-//
+//структура для истории
+type TikcerHistory struct {
+	Name       string
+	Price      string
+	Date       time.Time
+	DateFrom   string
+	DateTo     string
+	Difference string
+}

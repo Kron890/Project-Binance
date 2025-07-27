@@ -9,12 +9,14 @@ type Ticker struct {
 	Name string `json:"ticker"`
 }
 
+// для запроса
 type TickerParams struct {
 	Name     string
 	DateFrom string
 	DateTo   string
 }
 
+// для ответа
 type TickerResponse struct {
 	Name       string `json:"ticker"`
 	Price      string `json:"price"`
@@ -25,17 +27,17 @@ func MapTickerToEntity(t Ticker) entity.Ticker {
 	return entity.Ticker{Name: t.Name}
 }
 
-func MapTickerParamsToEntity(t TickerParams) entity.Ticker {
-	return entity.Ticker{
+func MapTickerParamsToHistory(t TickerParams) entity.TikcerHistory {
+	return entity.TikcerHistory{
 		Name:     t.Name,
 		DateFrom: t.DateFrom,
 		DateTo:   t.DateTo,
 	}
 }
 
-func MapEntityToResponce(t entity.Ticker) TickerResponse {
+func MapEntityToResponce(t entity.TikcerHistory) TickerResponse {
 	return TickerResponse{
 		Name:       t.Name,
 		Price:      t.Price,
-		Difference: fmt.Sprintf("%s%%", t.Diff)}
+		Difference: fmt.Sprintf("%s%%", t.Difference)}
 }

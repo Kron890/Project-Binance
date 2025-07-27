@@ -1,8 +1,10 @@
 package postgres
 
 import (
+	"fmt"
 	"projectBinacne/infrastructure/database"
 	"projectBinacne/internal/entity"
+	"projectBinacne/internal/entity/filters"
 	dtorepository "projectBinacne/internal/repository/postgres/dto_repository"
 )
 
@@ -16,33 +18,72 @@ func NewRepo(db *database.DataBase) *PostgresRepo {
 
 //(name string) правильно или лушче в структуру, но там просто один параметр ?
 
-// кладет в бд название тикера(отделаня бд для название тикеров)
+// кладет в бд название тикера(отделаня бд для название тикеров)(ticker_list)
 func (r *PostgresRepo) AddTickersList(name string) error {
-	//смотрим есть ли такой тикер
-	//если есть возваращет ответ с ошибкой
 
-	//закидываем тикер
+	query := `INSERT INTO ticker_list (name) VALUES ($1) ON CONFLICT DO NOTHING`
+
+	result, err := r.DB.DB.Exec(query, name)
+	if err != nil {
+		return err
+	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return fmt.Errorf("ticker %s already exists", name)
+	}
 	return nil
 }
 
 // вытаскиваем все название
 func (r *PostgresRepo) GetTickersList() ([]entity.Ticker, error) {
-	return []entity.Ticker{}, nil
+	query := `SELECT ticker FROM ticker_list`
+
+	rows, err := r.DB.DB.Query(query)
+	if err != nil {
+		return []entity.Ticker{}, err
+	}
+	defer rows.Close()
+	tickerList := make([]entity.Ticker, 0, 10)
+
+	for rows.Next() {
+		var t entity.Ticker
+
+		err := rows.Scan(&t.Name)
+		if err != nil {
+			return []entity.Ticker{}, err
+		}
+
+		tickerList = append(tickerList, t)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return tickerList, nil
 }
 
 // находим данные
-func (r *PostgresRepo) FetchTickerHistory(t entity.TikcerHistory) (entity.TikcerHistory, error) {
-	//map dto
-	// query := "SELECT * FROM ticker_history_list " //запрос
+func (r *PostgresRepo) FetchTickerHistory(t filters.TickerHistoryDiff) (filters.TickerHistoryResult, error) {
+	result := filters.TickerHistoryResult{Name: t.Name}
 
-	//парсим в time.time
+	query := `SELECT price FROM ticker_history_list WHERE name = $1 AND date = $2 LIMIT 1`
 
-	// row := r.DB.DB.QueryRow(query, sql.Named("date"))
+	// Запрос для даты from
+	err := r.DB.DB.QueryRow(query, t.Name, t.DateFrom).Scan(&result.PriceFrom)
+	if err != nil {
+		return filters.TickerHistoryResult{}, err
+	}
 
-	//map Dto
-	//отдаем в usecase
+	// Запрос для даты to
+	err = r.DB.DB.QueryRow(query, t.Name, t.DateTo).Scan(&result.PriceTo)
+	if err != nil {
+		return filters.TickerHistoryResult{}, err
+	}
 
-	return entity.TikcerHistory{}, nil
+	return result, nil
 }
 
 // кладем данные с историей
