@@ -17,7 +17,7 @@ func NewConnectDB(c config.Config) (*DataBase, error) {
 		c.User,
 		c.Password,
 		c.Host,
-		c.Port,
+		c.DBPort,
 		c.DB,
 	)
 	connect, err := sql.Open("postgres", connStr)

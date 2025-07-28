@@ -34,7 +34,8 @@ func (b *BinanceService) GetPrice(ticker string) (string, error) {
 
 }
 
-// price, err := strconv.ParseFloat(prices[0].Price, 64)
-// if err != nil {
-// 	return 0, err
+// вытаскиваем несколько тикеров
+// func (b *BinanceService) GetPricesList(t []entity.Ticker) []entity.TikcerHistory {
+// 	tickerList := dto.MapEntityToRequest(t)
+
 // }

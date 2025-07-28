@@ -8,11 +8,12 @@ import (
 )
 
 type Config struct {
-	Port     string
-	User     string
-	DB       string
-	Password string
-	Host     string
+	ServerPort string
+	DBPort     string
+	User       string
+	DB         string
+	Password   string
+	Host       string
 }
 
 //TODO: ПОМЕНЯТЬ ОШИБКИ
@@ -23,8 +24,8 @@ func GetConfig() (Config, error) {
 		return Config{}, err
 	}
 	var c Config
-	c.Port = os.Getenv("POSTGRES_PORT")
-	if c.Port == "" {
+	c.DBPort = os.Getenv("POSTGRES_PORT")
+	if c.DBPort == "" {
 		return Config{}, errors.New("не найден порт")
 	}
 	c.User = os.Getenv("POSTGRES_USER")
@@ -45,5 +46,9 @@ func GetConfig() (Config, error) {
 		return Config{}, errors.New("не найден host")
 	}
 
+	c.ServerPort = os.Getenv("SERVER_PORT")
+	if err != nil {
+		return Config{}, errors.New("не найден SERVER_PORT")
+	}
 	return c, nil
 }

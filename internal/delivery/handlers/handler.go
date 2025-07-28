@@ -42,7 +42,7 @@ func (h Handler) AddTicker(c echo.Context) error {
 			"error": err.Error(),
 		})
 	}
-	return c.JSON(http.StatusOK, "")
+	return c.JSON(http.StatusOK, "ticker added successfully")
 }
 
 func (h Handler) FetchTicker(c echo.Context) error {

@@ -17,6 +17,6 @@ func NewServer() *Server {
 }
 
 func (e *Server) StartServer(c config.Config) error {
-	path := fmt.Sprintf("%s:%s", c.Host, c.Port)
+	path := fmt.Sprintf("%s:%s", c.Host, c.ServerPort)
 	return e.echo.Start(path)
 }

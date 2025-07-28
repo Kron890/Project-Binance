@@ -19,11 +19,11 @@ func NewRepo(db *database.DataBase) *PostgresRepo {
 //(name string) правильно или лушче в структуру, но там просто один параметр ?
 
 // кладет в бд название тикера(отделаня бд для название тикеров)(ticker_list)
-func (r *PostgresRepo) AddTickersList(name string) error {
+func (r *PostgresRepo) AddTickersList(ticker string) error {
 
-	query := `INSERT INTO ticker_list (name) VALUES ($1) ON CONFLICT DO NOTHING`
+	query := `INSERT INTO ticker_list (ticker) VALUES ($1) ON CONFLICT DO NOTHING`
 
-	result, err := r.DB.DB.Exec(query, name)
+	result, err := r.DB.DB.Exec(query, ticker)
 	if err != nil {
 		return err
 	}
@@ -32,7 +32,7 @@ func (r *PostgresRepo) AddTickersList(name string) error {
 		return err
 	}
 	if rows == 0 {
-		return fmt.Errorf("ticker %s already exists", name)
+		return fmt.Errorf("ticker %s already exists", ticker)
 	}
 	return nil
 }

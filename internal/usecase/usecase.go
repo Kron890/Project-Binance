@@ -1,10 +1,13 @@
 package usecase
 
 import (
+	"fmt"
+	"log"
 	"projectBinacne/internal"
 	"projectBinacne/internal/entity"
 	"projectBinacne/internal/entity/filters"
 	"projectBinacne/internal/usecase/helpers"
+	"strings"
 )
 
 type Ucecase struct {
@@ -22,9 +25,13 @@ func NewUsecase(r internal.RepoPostgres, b internal.RepoBinance) *Ucecase {
 // просто добавляем в бд
 func (uc *Ucecase) AddTicker(ticker entity.Ticker) error {
 
+	ticker.Name = strings.ToUpper(ticker.Name)
+
 	_, err := uc.BinService.GetPrice(ticker.Name)
+
 	if err != nil {
-		return err
+		log.Print(err)
+		return fmt.Errorf("ticker not found")
 	}
 
 	err = uc.Repo.AddTickersList(ticker.Name)
@@ -69,6 +76,15 @@ func (uc *Ucecase) FetchTicker(ticker entity.TikcerHistory) (entity.TikcerHistor
 	}
 
 	return ticker, nil
+}
+
+func (uc *Ucecase) UpdateTickerHistory() error {
+	ticker, err := uc.Repo.GetTickersList()
+	if err != nil {
+		return err
+	}
+	fmt.Println(ticker)
+
 }
 
 //функция которая будет регулярно обновлять данные в бд

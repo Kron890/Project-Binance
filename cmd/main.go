@@ -30,5 +30,4 @@ func main() {
 	}
 	fmt.Println("Server started successfully.")
 
-	// TODO: add defer for server shutdown if needed
 }
