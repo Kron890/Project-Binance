@@ -3,6 +3,8 @@ package binanceapi
 import (
 	"context"
 	"fmt"
+	"projectBinacne/internal/entity"
+	dtobinacne "projectBinacne/internal/repository/binance_api/dtoBinacne"
 
 	"github.com/adshao/go-binance/v2"
 )
@@ -35,7 +37,17 @@ func (b *BinanceService) GetPrice(ticker string) (string, error) {
 }
 
 // вытаскиваем несколько тикеров
-// func (b *BinanceService) GetPricesList(t []entity.Ticker) []entity.TikcerHistory {
-// 	tickerList := dto.MapEntityToRequest(t)
+func (b *BinanceService) GetPricesList(t []entity.Ticker) ([]entity.TikcerHistory, error) {
+	tickerList := make([]string, 0, len(t))
 
-// }
+	for _, ticker := range t {
+		tickerList = append(tickerList, ticker.Name)
+	}
+
+	prices, err := b.client.NewListPricesService().Symbols(tickerList).Do(context.Background())
+	if err != nil {
+		return []entity.TikcerHistory{}, err
+	}
+
+	return dtobinacne.MapPriceToHistroy(prices), nil
+}

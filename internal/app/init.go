@@ -21,6 +21,7 @@ func Init(srv *Server, cfg config.Config) error {
 	binanceService := binanceapi.NewBinanceService()
 
 	uc := usecase.NewUsecase(repository, binanceService)
+	usecase.StartTickerHistoryUpdater(uc)
 
 	handler := handlers.NewHandler(uc)
 

@@ -3,6 +3,7 @@ package dto
 import (
 	"fmt"
 	"projectBinacne/internal/entity"
+	"strings"
 )
 
 type Ticker struct {
@@ -36,6 +37,12 @@ func MapTickerParamsToHistory(t TickerParams) entity.TikcerHistory {
 }
 
 func MapEntityToResponce(t entity.TikcerHistory) TickerResponse {
+	trimmed := strings.TrimRight(t.Price, "0")
+	t.Price = strings.TrimRight(trimmed, ".")
+
+	if t.Difference == "" {
+		t.Difference = "0"
+	}
 	return TickerResponse{
 		Name:       t.Name,
 		Price:      t.Price,

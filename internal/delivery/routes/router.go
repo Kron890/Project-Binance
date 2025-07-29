@@ -8,5 +8,5 @@ import (
 
 func Init(e *echo.Echo, h handlers.Handler) {
 	e.POST("/add_ticker", h.AddTicker)
-	e.GET("/fetch/:ticker/:date_from/:date_to", h.FetchTicker)
+	e.GET("/fetch", h.FetchTicker)
 }

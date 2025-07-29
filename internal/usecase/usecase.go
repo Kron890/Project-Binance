@@ -8,6 +8,7 @@ import (
 	"projectBinacne/internal/entity/filters"
 	"projectBinacne/internal/usecase/helpers"
 	"strings"
+	"time"
 )
 
 type Ucecase struct {
@@ -52,12 +53,13 @@ func (uc *Ucecase) FetchTicker(ticker entity.TikcerHistory) (entity.TikcerHistor
 		if err != nil {
 			return entity.TikcerHistory{}, err
 		}
+
 		ticker.Price = price
 
 		return ticker, nil
 	}
 
-	dateFrom, dateTo, err := helpers.ParseDate(ticker.DateTo, ticker.DateFrom)
+	dateFrom, dateTo, err := helpers.ParseDate(ticker.DateFrom, ticker.DateTo)
 	if err != nil {
 		return entity.TikcerHistory{}, err
 	}
@@ -75,21 +77,37 @@ func (uc *Ucecase) FetchTicker(ticker entity.TikcerHistory) (entity.TikcerHistor
 		return entity.TikcerHistory{}, err
 	}
 
+	ticker.Price = history.PriceTo
+
 	return ticker, nil
 }
 
+// регулярное обновление данных
 func (uc *Ucecase) UpdateTickerHistory() error {
-	ticker, err := uc.Repo.GetTickersList()
+	tickersList, err := uc.Repo.GetTickersList()
 	if err != nil {
 		return err
 	}
-	fmt.Println(ticker)
+
+	tickersHistory, err := uc.BinService.GetPricesList(tickersList)
+	if err != nil {
+		return err
+	}
+
+	return uc.Repo.AddTickersHistory(tickersHistory)
 
 }
 
-//функция которая будет регулярно обновлять данные в бд
-// то есть она должна лазить в бд лист
-//как-то фиксировать время если в бинансе не приходит со временем
-//весь этот лист кидать в бинанс репозиторий, забирать прайс
-//конвертировать, записать время и положить в структруру
-//отдать в репозиторий и записать в history
+func StartTickerHistoryUpdater(uc *Ucecase) {
+	go func() {
+		ticker := time.NewTicker(time.Minute)
+		defer ticker.Stop()
+		time.Sleep(5 * time.Second)
+		for {
+			if err := uc.UpdateTickerHistory(); err != nil {
+				log.Println("UpdateTickerHistory error:", err)
+			}
+			<-ticker.C
+		}
+	}()
+}

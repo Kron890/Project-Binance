@@ -45,29 +45,30 @@ func (h Handler) AddTicker(c echo.Context) error {
 	return c.JSON(http.StatusOK, "ticker added successfully")
 }
 
+// поиск прайса и разнцу в цене
 func (h Handler) FetchTicker(c echo.Context) error {
 	var t dto.TickerParams
-	t.Name = c.Param("ticker")
+	t.Name = c.QueryParam("ticker")
 	if t.Name == "" {
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"error": "ticker field is required",
 		})
 	}
 
-	t.DateFrom = c.Param("date_from")
-	if t.DateFrom != "" {
-		fmt.Println(t.DateFrom)
-		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "not valid",
-		})
+	t.DateFrom = c.QueryParam("date_from")
+	if t.DateFrom == "" {
+		fmt.Println(t.DateFrom, "not valid")
+		// return c.JSON(http.StatusBadRequest, map[string]string{
+		// 	"error": "not valid",
+		// })
 	}
 
-	t.DateTo = c.Param("date_to")
-	if t.DateTo != "" {
-		fmt.Println(t.DateFrom)
-		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": "not valid",
-		})
+	t.DateTo = c.QueryParam("date_to")
+	if t.DateTo == "" {
+		fmt.Println(t.DateTo, "not valid")
+		// return c.JSON(http.StatusBadRequest, map[string]string{
+		// 	"error": "not valid",
+		// })
 	}
 
 	ticker, err := h.uc.FetchTicker(dto.MapTickerParamsToHistory(t))
