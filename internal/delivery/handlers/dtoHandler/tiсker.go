@@ -43,6 +43,7 @@ func MapEntityToResponce(t entity.TikcerHistory) TickerResponse {
 	if t.Difference == "" {
 		t.Difference = "0"
 	}
+	
 	return TickerResponse{
 		Name:       t.Name,
 		Price:      t.Price,
