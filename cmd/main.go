@@ -28,6 +28,7 @@ func main() {
 		log.Println("Error: server failed to start:", err)
 		os.Exit(1)
 	}
-	fmt.Println("Server started successfully.")
+
+	fmt.Println("Server has successfully shut down")
 
 }

@@ -22,7 +22,7 @@ func GetConfig() (Config, error) {
 		return Config{}, err
 	}
 	var c Config
-	c.DBPort = os.Getenv("POSTGRES_PORT")
+	c.DBPort = os.Getenv("POSTGRES_PORT") //TODO: для всех таких проверок лучше писать валидаторы, которые через рефлексию, будут проверять что все четко
 	if c.DBPort == "" {
 		return Config{}, errors.New("POSTGRES_PORT not found")
 	}

@@ -6,21 +6,26 @@ import (
 	"projectBinacne/internal"
 	"projectBinacne/internal/entity"
 	"projectBinacne/internal/entity/filters"
-	"projectBinacne/internal/usecase/helpers"
+	"projectBinacne/pkg"
+	"strconv"
 	"strings"
 	"time"
 )
 
 type Ucecase struct {
-	Repo       internal.RepoPostgres
-	BinService internal.RepoBinance
+	Repo           internal.RepoPostgres
+	BinanceService internal.RepoBinance
 }
 
-func NewUsecase(r internal.RepoPostgres, b internal.RepoBinance) *Ucecase {
+func NewUsecase(repo internal.RepoPostgres, binanceService internal.RepoBinance) *Ucecase {
 	return &Ucecase{
-		Repo:       r,
-		BinService: b}
+		Repo:           repo,
+		BinanceService: binanceService,
+	}
+}
 
+func (uc *Ucecase) StartProcess() {
+	go uc.startTickerHistoryUpdater()
 }
 
 // просто добавляем в бд
@@ -28,7 +33,7 @@ func (uc *Ucecase) AddTicker(ticker entity.Ticker) error {
 
 	ticker.Name = strings.ToUpper(ticker.Name)
 
-	_, err := uc.BinService.GetPrice(ticker.Name)
+	_, err := uc.BinanceService.GetPrice(ticker.Name)
 
 	if err != nil {
 		log.Print(err)
@@ -49,7 +54,7 @@ func (uc *Ucecase) FetchTicker(ticker entity.TikcerHistory) (entity.TikcerHistor
 
 	//если нет даты,то вытаскиваем на данный момент
 	if ticker.DateFrom == "" || ticker.DateTo == "" {
-		price, err := uc.BinService.GetPrice(ticker.Name)
+		price, err := uc.BinanceService.GetPrice(ticker.Name)
 		if err != nil {
 			return entity.TikcerHistory{}, err
 		}
@@ -59,7 +64,7 @@ func (uc *Ucecase) FetchTicker(ticker entity.TikcerHistory) (entity.TikcerHistor
 		return ticker, nil
 	}
 
-	dateFrom, dateTo, err := helpers.ParseDate(ticker.DateFrom, ticker.DateTo)
+	dateFrom, dateTo, err := pkg.ParseDate(ticker.DateFrom, ticker.DateTo)
 	if err != nil {
 		return entity.TikcerHistory{}, err
 	}
@@ -72,7 +77,7 @@ func (uc *Ucecase) FetchTicker(ticker entity.TikcerHistory) (entity.TikcerHistor
 		return entity.TikcerHistory{}, err
 	}
 
-	ticker.Difference, err = helpers.DifferenceCalculator(history)
+	ticker.Difference, err = uc.differenceCalculator(history)
 	if err != nil {
 		return entity.TikcerHistory{}, err
 	}
@@ -89,7 +94,7 @@ func (uc *Ucecase) UpdateTickerHistory() error {
 		return err
 	}
 
-	tickersHistory, err := uc.BinService.GetPricesList(tickersList)
+	tickersHistory, err := uc.BinanceService.GetPricesList(tickersList)
 	if err != nil {
 		return err
 	}
@@ -98,7 +103,7 @@ func (uc *Ucecase) UpdateTickerHistory() error {
 
 }
 
-func StartTickerHistoryUpdater(uc *Ucecase) {
+func (uc *Ucecase) startTickerHistoryUpdater() {
 	go func() {
 		ticker := time.NewTicker(time.Minute)
 		defer ticker.Stop()
@@ -110,4 +115,23 @@ func StartTickerHistoryUpdater(uc *Ucecase) {
 			<-ticker.C
 		}
 	}()
+}
+
+func (uc *Ucecase) differenceCalculator(result filters.TickerHistoryResult) (string, error) {
+
+	startPrice, err := strconv.ParseFloat(result.PriceFrom, 64)
+	if err != nil {
+		return "", err
+	}
+	if startPrice == 0 {
+		return "", fmt.Errorf("division by zero")
+	}
+
+	endPrice, err := strconv.ParseFloat(result.PriceTo, 64)
+	if err != nil {
+		return "", err
+	}
+
+	diff := ((endPrice - startPrice) / startPrice) * 100
+	return fmt.Sprintf("%.2f", diff), nil
 }

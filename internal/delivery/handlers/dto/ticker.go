@@ -7,14 +7,14 @@ import (
 )
 
 type Ticker struct {
-	Name string `json:"ticker"`
+	Name string `json:"ticker" validate:"required"`
 }
 
 // для запроса
 type TickerParams struct {
-	Name     string
-	DateFrom string
-	DateTo   string
+	Name     string `validate:"required"`
+	DateFrom string `validate:"required"`
+	DateTo   string `validate:"required"`
 }
 
 // для ответа
@@ -43,7 +43,7 @@ func MapEntityToResponce(t entity.TikcerHistory) TickerResponse {
 	if t.Difference == "" {
 		t.Difference = "0"
 	}
-	
+
 	return TickerResponse{
 		Name:       t.Name,
 		Price:      t.Price,

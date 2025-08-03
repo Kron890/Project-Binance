@@ -15,7 +15,7 @@ type BinanceService struct {
 }
 
 func NewBinanceService() *BinanceService {
-	client := binance.NewClient("", "")
+	client := binance.NewClient("", "") //Внешний api binance, здесь не нужен ключ
 	service := client.NewListPricesService()
 
 	return &BinanceService{client: client, listPriceService: service}

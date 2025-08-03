@@ -87,7 +87,7 @@ func (r *PostgresRepo) AddTickersHistory(t []entity.TikcerHistory) error {
 
 	query := "INSERT INTO ticker_history_list (ticker, price, date) VALUES ($1, $2, $3)"
 
-	for _, t := range tickers {
+	for _, t := range tickers { // FIX: плохая практика. Не надо делать инсерты в цикле. Либо батч вставка, либо, на худой конец, транзакция
 		_, err := r.DB.DB.Exec(query, t.Name, t.Price, t.Date)
 		if err != nil {
 			return err
