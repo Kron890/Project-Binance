@@ -25,7 +25,7 @@ func NewUsecase(repo internal.RepoPostgres, binanceService internal.RepoBinance)
 }
 
 func (uc *Ucecase) StartProcess() {
-	go uc.startTickerHistoryUpdater()
+	uc.startTickerHistoryUpdater()
 }
 
 // просто добавляем в бд
@@ -44,7 +44,6 @@ func (uc *Ucecase) AddTicker(ticker entity.Ticker) error {
 	if err != nil {
 		return err
 	}
-
 	return nil
 
 }

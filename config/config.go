@@ -45,7 +45,7 @@ func GetConfig() (Config, error) {
 	}
 
 	c.ServerPort = os.Getenv("SERVER_PORT")
-	if err != nil {
+	if c.ServerPort == "" {
 		return Config{}, errors.New("SERVER_PORT not found")
 	}
 	return c, nil
