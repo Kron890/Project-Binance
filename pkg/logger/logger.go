@@ -6,13 +6,14 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var Log *logrus.Logger
-
-func Init() {
-	Log = logrus.New()
-	Log.SetOutput(os.Stdout)
-	Log.SetLevel(logrus.InfoLevel)
-	Log.SetFormatter(&logrus.TextFormatter{
-		FullTimestamp: true,
+func Init() *logrus.Logger {
+	log := logrus.New()
+	log.SetOutput(os.Stdout)
+	log.SetLevel(logrus.InfoLevel)
+	log.SetFormatter(&logrus.TextFormatter{
+		FullTimestamp:   true,
+		ForceColors:     true,
+		TimestampFormat: "15:04 02-01-2006",
 	})
+	return log
 }

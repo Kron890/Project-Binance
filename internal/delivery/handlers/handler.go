@@ -7,14 +7,19 @@ import (
 	"projectBinacne/pkg/validation"
 
 	"github.com/labstack/echo/v4"
+	"github.com/sirupsen/logrus"
 )
 
 type Handler struct {
-	uc internal.Usecase
+	uc   internal.Usecase
+	logs *logrus.Logger
 }
 
-func NewHandler(uc internal.Usecase) *Handler {
-	return &Handler{uc: uc}
+func NewHandler(uc internal.Usecase, logs *logrus.Logger) *Handler {
+	return &Handler{
+		uc:   uc,
+		logs: logs,
+	}
 }
 
 //TODO: сделать функцию на ошибки
@@ -25,15 +30,17 @@ func (h Handler) AddTicker(c echo.Context) error {
 
 	err := c.Bind(&ticker)
 	if err != nil {
+		h.logs.Error(err)
 		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": err.Error(),
+			"error": "the data cannot be received, check the format of the data being sent",
 		})
 	}
 
 	err = validation.ValidateStruct(&ticker)
 	if err != nil {
+		h.logs.Error(err)
 		return c.JSON(http.StatusBadRequest, map[string]string{
-			"error": err.Error(),
+			"error": "the data is not valid",
 		})
 	}
 	err = h.uc.AddTicker(dto.MapTickerToEntity(ticker))

@@ -6,14 +6,20 @@ import (
 	"projectBinacne/internal/entity"
 	"projectBinacne/internal/entity/filters"
 	dtorepository "projectBinacne/internal/repository/postgres/dto_repository"
+
+	"github.com/sirupsen/logrus"
 )
 
 type PostgresRepo struct {
-	DB *database.DataBase
+	DB   *database.DataBase
+	logs *logrus.Logger
 }
 
-func NewRepo(db *database.DataBase) *PostgresRepo {
-	return &PostgresRepo{DB: db}
+func NewRepo(db *database.DataBase, logs *logrus.Logger) *PostgresRepo {
+	return &PostgresRepo{
+		DB:   db,
+		logs: logs,
+	}
 }
 
 // кладет в бд название тикера(отделаня бд для название тикеров)(ticker_list)
@@ -32,6 +38,7 @@ func (r *PostgresRepo) AddTickersList(ticker string) error {
 	if rows == 0 {
 		return fmt.Errorf("ticker %s already exists", ticker)
 	}
+	r.logs.Info("the ticker was successfully added to the database")
 	return nil
 }
 
@@ -60,6 +67,7 @@ func (r *PostgresRepo) GetTickersList() ([]entity.Ticker, error) {
 		return nil, err
 	}
 
+	r.logs.Info("tickers received successfully")
 	return tickerList, nil
 }
 
@@ -78,6 +86,7 @@ func (r *PostgresRepo) FetchTickerHistory(t filters.TickerHistoryDiff) (filters.
 		return filters.TickerHistoryResult{}, err
 	}
 
+	r.logs.Info("ticker was found successfully")
 	return result, nil
 }
 
@@ -86,13 +95,14 @@ func (r *PostgresRepo) AddTickersHistory(t []entity.TikcerHistory) error {
 	tickers := dtorepository.MapEntitesToHistories(t)
 
 	query := "INSERT INTO ticker_history_list (ticker, price, date) VALUES ($1, $2, $3)"
-
-	for _, t := range tickers { // FIX: плохая практика. Не надо делать инсерты в цикле. Либо батч вставка, либо, на худой конец, транзакция
+	for _, t := range tickers {
+		// FIX: Либо батч вставка, либо, на худой конец, транзакция
 		_, err := r.DB.DB.Exec(query, t.Name, t.Price, t.Date)
 		if err != nil {
 			return err
 		}
 
 	}
+	r.logs.Info("data was successfully added to the database")
 	return nil
 }

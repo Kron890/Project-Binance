@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"fmt"
-	"log"
 	"projectBinacne/internal"
 	"projectBinacne/internal/entity"
 	"projectBinacne/internal/entity/filters"
@@ -10,17 +9,21 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/sirupsen/logrus"
 )
 
 type Ucecase struct {
 	Repo           internal.RepoPostgres
 	BinanceService internal.RepoBinance
+	logs           *logrus.Logger
 }
 
-func NewUsecase(repo internal.RepoPostgres, binanceService internal.RepoBinance) *Ucecase {
+func NewUsecase(repo internal.RepoPostgres, binanceService internal.RepoBinance, logs *logrus.Logger) *Ucecase {
 	return &Ucecase{
 		Repo:           repo,
 		BinanceService: binanceService,
+		logs:           logs,
 	}
 }
 
@@ -36,13 +39,14 @@ func (uc *Ucecase) AddTicker(ticker entity.Ticker) error {
 	_, err := uc.BinanceService.GetPrice(ticker.Name)
 
 	if err != nil {
-		log.Print(err)
+		uc.logs.Print(err)
 		return fmt.Errorf("ticker not found")
 	}
 
 	err = uc.Repo.AddTickersList(ticker.Name)
 	if err != nil {
-		return err
+		uc.logs.Error(err)
+		return fmt.Errorf("no ticker added")
 	}
 	return nil
 
@@ -55,7 +59,8 @@ func (uc *Ucecase) FetchTicker(ticker entity.TikcerHistory) (entity.TikcerHistor
 	if ticker.DateFrom == "" || ticker.DateTo == "" {
 		price, err := uc.BinanceService.GetPrice(ticker.Name)
 		if err != nil {
-			return entity.TikcerHistory{}, err
+			uc.logs.Error(err)
+			return entity.TikcerHistory{}, fmt.Errorf("no data received")
 		}
 
 		ticker.Price = price
@@ -65,7 +70,8 @@ func (uc *Ucecase) FetchTicker(ticker entity.TikcerHistory) (entity.TikcerHistor
 
 	dateFrom, dateTo, err := pkg.ParseDate(ticker.DateFrom, ticker.DateTo)
 	if err != nil {
-		return entity.TikcerHistory{}, err
+		uc.logs.Error(err)
+		return entity.TikcerHistory{}, fmt.Errorf("no data received")
 	}
 
 	history, err := uc.Repo.FetchTickerHistory(filters.TickerHistoryDiff{
@@ -73,12 +79,14 @@ func (uc *Ucecase) FetchTicker(ticker entity.TikcerHistory) (entity.TikcerHistor
 		DateFrom: dateFrom,
 		DateTo:   dateTo})
 	if err != nil {
-		return entity.TikcerHistory{}, err
+		uc.logs.Error(err)
+		return entity.TikcerHistory{}, fmt.Errorf("no data received")
 	}
 
 	ticker.Difference, err = uc.differenceCalculator(history)
 	if err != nil {
-		return entity.TikcerHistory{}, err
+		uc.logs.Error(err)
+		return entity.TikcerHistory{}, fmt.Errorf("no data received")
 	}
 
 	ticker.Price = history.PriceTo
@@ -106,10 +114,10 @@ func (uc *Ucecase) startTickerHistoryUpdater() {
 	go func() {
 		ticker := time.NewTicker(time.Minute)
 		defer ticker.Stop()
-		time.Sleep(5 * time.Second)
+		time.Sleep(60 * time.Second)
 		for {
 			if err := uc.UpdateTickerHistory(); err != nil {
-				log.Println("UpdateTickerHistory error:", err)
+				uc.logs.Info("UpdateTickerHistory error:", err)
 			}
 			<-ticker.C
 		}
@@ -120,6 +128,7 @@ func (uc *Ucecase) differenceCalculator(result filters.TickerHistoryResult) (str
 
 	startPrice, err := strconv.ParseFloat(result.PriceFrom, 64)
 	if err != nil {
+		uc.logs.Error(err)
 		return "", err
 	}
 	if startPrice == 0 {
