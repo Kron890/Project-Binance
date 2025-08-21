@@ -22,3 +22,4 @@ config/ — конфигурация приложения.
 infrastructure/database/ — подключение к базе данных.
 
 
+//TODO: Добавить Graceful Shutdown

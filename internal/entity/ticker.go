@@ -2,13 +2,13 @@ package entity
 
 import "time"
 
-//структура для тикера
+// Ticke структура для тикера
 type Ticker struct {
 	Name  string
 	Price string
 }
 
-//структура для истории
+// TikcerHistory структура для истории
 type TikcerHistory struct {
 	Name       string
 	Price      string

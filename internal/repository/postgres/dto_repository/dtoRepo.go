@@ -11,6 +11,7 @@ type TikcerHistory struct {
 	Date  time.Time
 }
 
+// MapEntitesToHistories преобразует слайс entity -> DTO для репозитория
 func MapEntitesToHistories(tickers []entity.TikcerHistory) []TikcerHistory {
 	var result []TikcerHistory
 	for _, t := range tickers {

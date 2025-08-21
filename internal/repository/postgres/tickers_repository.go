@@ -10,19 +10,21 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// PostgresRepo реализует хранение данных в PostgreSQL
 type PostgresRepo struct {
 	DB   *database.DataBase
 	logs *logrus.Logger
 }
 
-func NewRepo(db *database.DataBase, logs *logrus.Logger) *PostgresRepo {
+// New создаёт новый репозиторий
+func New(db *database.DataBase, logs *logrus.Logger) *PostgresRepo {
 	return &PostgresRepo{
 		DB:   db,
 		logs: logs,
 	}
 }
 
-// кладет в бд название тикера(отделаня бд для название тикеров)(ticker_list)
+// AddTickersList сохраняет уникальное название тикера
 func (r *PostgresRepo) AddTickersList(ticker string) error {
 
 	query := `INSERT INTO ticker_list (ticker) VALUES ($1) ON CONFLICT DO NOTHING`
@@ -42,7 +44,7 @@ func (r *PostgresRepo) AddTickersList(ticker string) error {
 	return nil
 }
 
-// вытаскиваем все название
+// GetTickersList возвращает все названия тикеров
 func (r *PostgresRepo) GetTickersList() ([]entity.Ticker, error) {
 	query := `SELECT ticker FROM ticker_list`
 
@@ -71,7 +73,7 @@ func (r *PostgresRepo) GetTickersList() ([]entity.Ticker, error) {
 	return tickerList, nil
 }
 
-// находим данные
+// FetchTickerHistory вытаскивает цену на две даты и считает разницу
 func (r *PostgresRepo) FetchTickerHistory(t filters.TickerHistoryDiff) (filters.TickerHistoryResult, error) {
 	result := filters.TickerHistoryResult{Name: t.Name}
 	query := `SELECT price FROM ticker_history_list WHERE ticker = $1 AND date = $2 LIMIT 1`
@@ -90,7 +92,7 @@ func (r *PostgresRepo) FetchTickerHistory(t filters.TickerHistoryDiff) (filters.
 	return result, nil
 }
 
-// кладем данные с историей
+// AddTickersHistory пакетно сохраняет исторические цены
 func (r *PostgresRepo) AddTickersHistory(t []entity.TikcerHistory) error {
 	tickers := dtorepository.MapEntitesToHistories(t)
 

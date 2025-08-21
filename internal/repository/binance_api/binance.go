@@ -9,11 +9,13 @@ import (
 	"github.com/adshao/go-binance/v2"
 )
 
+// BinanceService клиент к публичному API Binance
 type BinanceService struct {
 	client           *binance.Client
 	listPriceService *binance.ListPricesService
 }
 
+// NewBinanceService инициализирует клиента без ключа API
 func NewBinanceService() *BinanceService {
 	client := binance.NewClient("", "") //Внешний api binance, здесь не нужен ключ
 	service := client.NewListPricesService()
@@ -21,7 +23,7 @@ func NewBinanceService() *BinanceService {
 	return &BinanceService{client: client, listPriceService: service}
 }
 
-// вытаскивает прайс и отдает в entity.Ticker
+// GetPrice возвращает текущую цену одного тикера
 func (b *BinanceService) GetPrice(ticker string) (string, error) {
 	prices, err := b.listPriceService.Symbol(ticker).Do(context.Background())
 	if err != nil {
@@ -36,7 +38,7 @@ func (b *BinanceService) GetPrice(ticker string) (string, error) {
 
 }
 
-// вытаскиваем несколько тикеров
+// GetPricesList возвращает цены нескольких тикеров
 func (b *BinanceService) GetPricesList(t []entity.Ticker) ([]entity.TikcerHistory, error) {
 	tickerList := make([]string, 0, len(t))
 

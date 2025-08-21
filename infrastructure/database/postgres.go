@@ -8,10 +8,12 @@ import (
 	_ "github.com/lib/pq"
 )
 
+// DataBase обёртка над *sql.DB
 type DataBase struct {
 	DB *sql.DB
 }
 
+// NewConnectDB создаёт подключение к Postgres и мигрирует схем
 func NewConnectDB(c config.Config) (*DataBase, error) {
 	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
 		c.User,
@@ -30,6 +32,7 @@ func NewConnectDB(c config.Config) (*DataBase, error) {
 		return &DataBase{}, err
 	}
 
+	// миграция таблиц
 	tables := `
 	CREATE TABLE IF NOT EXISTS ticker_list (
 		ticker TEXT PRIMARY KEY

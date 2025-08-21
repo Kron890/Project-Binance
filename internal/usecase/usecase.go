@@ -13,13 +13,15 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// Usecase бизнес-логика приложения
 type Ucecase struct {
 	Repo           internal.RepoPostgres
 	BinanceService internal.RepoBinance
 	logs           *logrus.Logger
 }
 
-func NewUsecase(repo internal.RepoPostgres, binanceService internal.RepoBinance, logs *logrus.Logger) *Ucecase {
+// New создаёт слой usecase
+func New(repo internal.RepoPostgres, binanceService internal.RepoBinance, logs *logrus.Logger) *Ucecase {
 	return &Ucecase{
 		Repo:           repo,
 		BinanceService: binanceService,
@@ -27,11 +29,12 @@ func NewUsecase(repo internal.RepoPostgres, binanceService internal.RepoBinance,
 	}
 }
 
+// StartProcess запускает фоновые задачи
 func (uc *Ucecase) StartProcess() {
 	uc.startTickerHistoryUpdater()
 }
 
-// просто добавляем в бд
+// AddTicker сохраняет новый тикер в БД
 func (uc *Ucecase) AddTicker(ticker entity.Ticker) error {
 
 	ticker.Name = strings.ToUpper(ticker.Name)
@@ -52,10 +55,10 @@ func (uc *Ucecase) AddTicker(ticker entity.Ticker) error {
 
 }
 
-// вытаскиваем данные
+// FetchTicker возвращает цену или разницу за период
 func (uc *Ucecase) FetchTicker(ticker entity.TikcerHistory) (entity.TikcerHistory, error) {
 
-	//если нет даты,то вытаскиваем на данный момент
+	//если нет даты,то вытаскиваем данные на данный момент
 	if ticker.DateFrom == "" || ticker.DateTo == "" {
 		price, err := uc.BinanceService.GetPrice(ticker.Name)
 		if err != nil {
@@ -94,7 +97,7 @@ func (uc *Ucecase) FetchTicker(ticker entity.TikcerHistory) (entity.TikcerHistor
 	return ticker, nil
 }
 
-// регулярное обновление данных
+// UpdateTickerHistory обновляет исторические цены
 func (uc *Ucecase) UpdateTickerHistory() error {
 	tickersList, err := uc.Repo.GetTickersList()
 	if err != nil {
@@ -110,6 +113,7 @@ func (uc *Ucecase) UpdateTickerHistory() error {
 
 }
 
+// startTickerHistoryUpdater запускает фоновый цикл обновления
 func (uc *Ucecase) startTickerHistoryUpdater() {
 	go func() {
 		ticker := time.NewTicker(time.Minute)
@@ -124,6 +128,7 @@ func (uc *Ucecase) startTickerHistoryUpdater() {
 	}()
 }
 
+// differenceCalculator считает процентное изменение цены
 func (uc *Ucecase) differenceCalculator(result filters.TickerHistoryResult) (string, error) {
 
 	startPrice, err := strconv.ParseFloat(result.PriceFrom, 64)

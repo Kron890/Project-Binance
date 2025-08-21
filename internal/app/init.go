@@ -12,21 +12,25 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// Init собирает все слои приложения и регистрирует маршруты
 func Init(srv *Server, cfg config.Config, logs *logrus.Logger) error {
-	//todo добавить логгирования
+
+	// подключение к БД
 	db, err := database.NewConnectDB(cfg)
 	if err != nil {
 		return err
 	}
-	repository := postgres.NewRepo(db, logs)
+	repository := postgres.New(db, logs)
 
+	// внешний клиент к Binance
 	binanceService := binanceapi.NewBinanceService()
 
-	uc := usecase.NewUsecase(repository, binanceService, logs)
+	// бизнес-логика
+	uc := usecase.New(repository, binanceService, logs)
 	uc.StartProcess()
 
-	handler := handlers.NewHandler(uc, logs)
-
+	// HTTP-обработчики
+	handler := handlers.New(uc, logs)
 	routes.Init(srv.echo, *handler)
 
 	return nil

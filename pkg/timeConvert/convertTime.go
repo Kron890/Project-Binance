@@ -5,6 +5,7 @@ import (
 	"time"
 )
 
+// Convert преобразует строки с датами и временными интервалами из заданного формата в Unix-время
 func Convert(dateFrom, dateTo string) (int64, int64, error) {
 	loc, _ := time.LoadLocation("Europe/Moscow") // Загружаем московский часовой пояс
 	dateFromTime, err := time.ParseInLocation("02.01.2006 15:04:05", dateFrom, loc)

@@ -7,6 +7,8 @@ import (
 	"projectBinacne/pkg/logger"
 )
 
+// TODO: Добавить Graceful Shutdown
+// main точка входа в приложение
 func main() {
 	logs := logger.Init()
 

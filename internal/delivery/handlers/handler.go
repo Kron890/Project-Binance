@@ -10,12 +10,14 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// Handler обрабатывает HTTP-запросы, используя слой use-case и логгер
 type Handler struct {
 	uc   internal.Usecase
 	logs *logrus.Logger
 }
 
-func NewHandler(uc internal.Usecase, logs *logrus.Logger) *Handler {
+// NewHandler создаёт новый экземпляр обработчиков
+func New(uc internal.Usecase, logs *logrus.Logger) *Handler {
 	return &Handler{
 		uc:   uc,
 		logs: logs,
@@ -24,7 +26,7 @@ func NewHandler(uc internal.Usecase, logs *logrus.Logger) *Handler {
 
 //TODO: сделать функцию на ошибки
 
-// Кладем данные в бд
+// AddTicker сохраняет новый тикер в БД
 func (h Handler) AddTicker(c echo.Context) error {
 	var ticker dto.Ticker
 
@@ -52,7 +54,7 @@ func (h Handler) AddTicker(c echo.Context) error {
 	return c.JSON(http.StatusOK, "ticker added successfully")
 }
 
-// поиск прайса и разнцу в цене
+// FetchTicker возвращает цену и изменение за указанный период
 func (h Handler) FetchTicker(c echo.Context) error {
 	var t dto.TickerParams
 	t.Name = c.QueryParam("ticker")

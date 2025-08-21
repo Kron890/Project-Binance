@@ -7,15 +7,17 @@ import (
 	"github.com/joho/godotenv"
 )
 
+// Config хранит настройки приложения
 type Config struct {
-	ServerPort string
-	DBPort     string
-	User       string
-	DB         string
-	Password   string
-	Host       string
+	ServerPort string // порт сервера
+	DBPort     string // порт БД
+	User       string // имя пользователя БД
+	DB         string // имя БД
+	Password   string // пароль БД
+	Host       string // хост БД
 }
 
+// GetConfig читает переменные окружения и проверяет их наличие
 func GetConfig() (Config, error) {
 	err := godotenv.Load()
 	if err != nil {

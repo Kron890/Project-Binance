@@ -7,6 +7,7 @@ import (
 	"github.com/adshao/go-binance/v2"
 )
 
+// MapPriceToHistroy преобразует данные Binance в слайс entity.TikcerHistory
 func MapPriceToHistroy(tickers []*binance.SymbolPrice) []entity.TikcerHistory {
 	var result []entity.TikcerHistory
 	for _, t := range tickers {
